@@ -1,94 +1,103 @@
-class Game {
-  constructor(container) {
-    this.container = container;
-    this.wordElement = container.querySelector('.word');
-    this.winsElement = container.querySelector('.status__wins');
-    this.lossElement = container.querySelector('.status__loss');
+const wordElement = document.querySelector('.word');
+let currentSymbol;
+let countSucces = 0;
+let countFail = 0;
+let timeoutId = null;
+const words = [
+  'bob это имя',
+  'я люблю kitkat',
+  'мне нравится netology',
+  'hello Вася',
+  'кошка по имени kitty',
+  'rock навсегда',
+  'youtube',
+  'popcorn купили',
+  'cinema тограф',
+  'love это любовь',
+  'javascript это круто'
+];
 
-    this.reset();
-
-    this.registerEvents();
-  }
-
-  reset() {
-    this.setNewWord();
-    this.winsElement.textContent = 0;
-    this.lossElement.textContent = 0;
-  }
-
-  registerEvents() {
-    /*
-      TODO:
-      Написать обработчик события, который откликается
-      на каждый введённый символ.
-      В случае правильного ввода слова вызываем this.success()
-      При неправильном вводе символа - this.fail();
-      DOM-элемент текущего символа находится в свойстве this.currentSymbol.
-     */
-  }
-
-  success() {
-    if(this.currentSymbol.classList.contains("symbol_current")) this.currentSymbol.classList.remove("symbol_current");
-    this.currentSymbol.classList.add('symbol_correct');
-    this.currentSymbol = this.currentSymbol.nextElementSibling;
-
-    if (this.currentSymbol !== null) {
-      this.currentSymbol.classList.add('symbol_current');
-      return;
-    }
-
-    if (++this.winsElement.textContent === 10) {
-      alert('Победа!');
-      this.reset();
-    }
-    this.setNewWord();
-  }
-
-  fail() {
-    if (++this.lossElement.textContent === 5) {
-      alert('Вы проиграли!');
-      this.reset();
-    }
-    this.setNewWord();
-  }
-
-  setNewWord() {
-    const word = this.getWord();
-
-    this.renderWord(word);
-  }
-
-  getWord() {
-    const words = [
-        'bob',
-        'awesome',
-        'netology',
-        'hello',
-        'kitty',
-        'rock',
-        'youtube',
-        'popcorn',
-        'cinema',
-        'love',
-        'javascript'
-      ],
-      index = Math.floor(Math.random() * words.length);
-
-    return words[index];
-  }
-
-  renderWord(word) {
-    const html = [...word]
-      .map(
-        (s, i) =>
-          `<span class="symbol ${i === 0 ? 'symbol_current': ''}">${s}</span>`
-      )
-      .join('');
-    this.wordElement.innerHTML = html;
-
-    this.currentSymbol = this.wordElement.querySelector('.symbol_current');
-  }
+const setWord = () => {
+  const word = words[Math.floor(Math.random() * words.length)];
+  let html = '';
+  [...word].forEach((symbol, i) => {
+    html += `<span class="symbol ${i === 0 ? 'symbol_current' : ''}">${symbol}</span>`;
+  });
+  wordElement.innerHTML = html;
+  runTimer(word.length);
 }
 
-new Game(document.getElementById('game'))
+const success = (currentSymbol) => {
+  currentSymbol.classList.remove('symbol_current');
+  currentSymbol.classList.add('symbol_correct');
+  if (currentSymbol.nextElementSibling) {
+    currentSymbol.nextElementSibling.classList.add('symbol_current');
+    return;
+  }
+  document.querySelector('.status__wins').textContent = ++countSucces;
+  if (countSucces === 10) {
+    stopTimer();
+    alert('Вы победили!');
+    clearCounts();
+    setWord();
+  }
+  setWord();
+}
+
+const fail = () => {
+  stopTimer();
+  document.querySelector('.status__loss').textContent = ++countFail;
+  if (countFail === 5) {
+    alert('Вы проиграли!');
+    clearCounts();
+    setWord();
+  }
+  setWord();
+}
+
+const clearCounts = () => {
+  countSucces = 0;
+  countFail = 0;
+  document.querySelector('.status__wins').textContent = countSucces;
+  document.querySelector('.status__loss').textContent = countFail;
+}
+
+const runTimer = (sec) => {
+  const sumTimes = new Date().getTime() + (sec + 0.99) * 1000;
+  const run = () => {
+    const timer = ((sumTimes - new Date().getTime()) / 1000).toFixed(0);
+    document.querySelector('.status__timer').textContent = timer;
+    if (timer <= 0) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+      fail();
+      return;
+    }
+    clearTimeout(timeoutId);
+    timeoutId = null;
+    timeoutId = setTimeout(run, 50);
+  }
+  run();
+}
+
+const stopTimer = () => {
+  clearTimeout(timeoutId);
+  timeoutId = null;
+}
+
+
+
+setWord();
+
+document.addEventListener('keydown', (event) => {
+  const currentSymbol = wordElement.querySelector('.symbol_current');
+  if (event.key !== 'Shift' && event.key !== 'Control' && event.key !== 'Alt') {
+    if (event.key.toUpperCase() === currentSymbol.textContent.toUpperCase()) {
+      success(currentSymbol);
+    } else {
+      fail();
+    }
+  }
+});
+
 
