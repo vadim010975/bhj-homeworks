@@ -37,7 +37,7 @@ const getData = () => {
     if (xhr.readyState !== xhr.DONE || xhr.status !== 200) {
       return;
     }
-    response = JSON.parse(xhr.response);
+    const response = JSON.parse(xhr.response);
     document.getElementById('loader').classList.remove('loader_active');
     showData(response);
     saveData(response);
