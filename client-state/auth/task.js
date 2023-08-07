@@ -1,5 +1,4 @@
 const formElement = document.getElementById('signin__form');
-const btnElement = document.getElementById('signin__btn');
 
 const sendForm = (formData) => {
   const xhr = new XMLHttpRequest();
